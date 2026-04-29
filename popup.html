@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MonkeyFill Coach</title>
+  <link rel="stylesheet" href="popup.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <img src="icons/icon48.png" alt="MonkeyFill Logo" class="logo-img">
+        <h1>MonkeyFill</h1>
+      </div>
+      <div class="credits">
+        <span id="credit-count">5</span> Credits
+      </div>
+    </header>
+
+    <main>
+      <p class="tagline">Your Honest Career Coach.</p>
+
+      <!-- Company context strip -->
+      <div class="company-strip">
+        <input type="text" id="company-name" placeholder="Company name (optional but recommended)" autocomplete="off">
+      </div>
+
+      <!-- Paste job offer area — always visible as collapsible -->
+      <div class="paste-section">
+        <div class="paste-header" id="paste-toggle-btn">
+          <span>📋 Paste Job Offer</span>
+          <span class="chevron" id="paste-chevron">▾</span>
+        </div>
+        <div id="paste-area" class="paste-body hidden">
+          <textarea id="job-paste-input" placeholder="Paste the job description here..." rows="6"></textarea>
+          <div class="lang-selector">
+            <span>Output Language:</span>
+            <div class="lang-pills">
+              <button id="lang-en" class="lang-pill active">EN</button>
+              <button id="lang-fr" class="lang-pill">FR</button>
+            </div>
+          </div>
+          <div class="paste-actions">
+            <button id="analyze-paste-btn" class="primary-btn small-btn">🧠 Analyze (1 Credit)</button>
+            <button id="cv-paste-btn" class="accent2-btn small-btn">📄 Tailored CV</button>
+            <button id="pro-cv-btn" class="hidden accent3-btn small-btn">🚀 Tailored PRO</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analyze current page -->
+      <button id="coach-btn" class="secondary-btn">
+        🧠 Analyze Current Page (1 Credit)
+      </button>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-icon">📄</div>
+        <h4>No Profile Found</h4>
+        <p>MonkeyFill needs your CV to analyze job matches.</p>
+        <button id="empty-state-btn" class="primary-btn">Upload CV Settings ⚙️</button>
+      </div>
+
+      <!-- Results -->
+      <div id="coach-results" class="results hidden"></div>
+
+      <!-- Paywall -->
+      <div id="paywall" class="paywall-box hidden">
+        <h4>Out of Credits 🕒</h4>
+        <p>5 free daily credits used. Wait until midnight or upgrade.</p>
+        <button id="upgrade-btn">Upgrade to Premium ✨</button>
+      </div>
+    </main>
+
+    <footer>
+      <span>by HABOMIC</span>
+      <div>
+        <a href="#" id="options-link">Settings ⚙️</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Global Toast Notifications -->
+  <div id="toast-container"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

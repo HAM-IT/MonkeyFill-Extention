@@ -1,0 +1,6 @@
+worker.js
+DEV_GUIDE.md
+release.sh
+*.zip
+.DS_Store
+Icon*

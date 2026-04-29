@@ -1,0 +1,310 @@
+/* popup.css — MonkeyFill Premium Overhaul (Recessed UI) */
+:root {
+  --app-shell: #ffffff;   /* Outer white bezel */
+  --bg-recess: linear-gradient(145deg, #1e1b4b, #3b0764, #2e1065); /* Dark recessed layer behind */
+  
+  --bg-card: #ffffff;     /* Floating cards */
+  --bg-nested: #f8fafc;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-on-dark: #f8fafc;
+  
+  --brand-solid: #5C2D91;
+  --brand-hover: #4a2475;
+  --brand-light: #f5f3ff;
+  --brand-glow: rgba(92,45,145,0.2);
+  
+  --accent-2: #1e1b4b;
+  --accent-3: linear-gradient(135deg, #4338ca, #6b21a8);
+  --orange: #f59e0b;
+  
+  --radius-xl: 32px;  /* Outer bezel */
+  --radius-lg: 24px;  /* Recessed screen */
+  --radius-md: 16px;  /* Inner actionable components */
+  --radius-sm: 10px;  /* Small tabs */
+  
+  --ease: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--app-shell);
+  color: var(--text-main);
+  width: 380px;
+  font-size: 13px;
+  overflow: hidden; /* Hide anything outside the bezel */
+}
+
+/* -- Main App Shell (The Bezel) -- */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ---- Header (White Border) ---- */
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 20px 12px;
+  background: var(--app-shell);
+  z-index: 10;
+}
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-img { width: 28px; height: 28px; object-fit: contain; }
+.logo h1 { font-size: 20px; margin: 0; font-weight: 800; color: var(--text-main); letter-spacing: -0.03em; }
+
+.credits {
+  font-size: 11px; color: var(--brand-solid);
+  background: var(--brand-light); padding: 6px 14px;
+  border-radius: var(--radius-lg); font-weight: 700;
+  box-shadow: 0 4px 10px var(--brand-glow);
+}
+#credit-count { font-weight: 800; }
+
+.tagline { display: none; }
+
+/* ---- The Recessed Middle Layer ---- */
+main {
+  background: var(--bg-recess);
+  flex: 1;
+  margin: 4px 16px; /* Space for the side bezels */
+  border-radius: var(--radius-lg);
+  padding: 20px 16px;
+  /* Massive inner shadow creates the illusion it's deep behind the white border */
+  box-shadow: inset 0 8px 30px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glassy glow effect on the screen */
+main::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+  pointer-events: none;
+}
+
+/* ---- Component Cards (Floating in the dark recess) ---- */
+.company-strip {
+  background: rgba(255,255,255,0.1); /* Frosted glass look behind */
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(8px);
+}
+.company-strip input {
+  width: 100%; padding: 14px 16px;
+  border: none; border-radius: var(--radius-md);
+  font-size: 13.5px; font-weight: 600;
+  color: var(--text-main); background: var(--bg-card);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all var(--ease); outline: none;
+}
+.company-strip input:focus {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 8px 24px rgba(0,0,0,0.25);
+  transform: translateY(-1px);
+}
+.company-strip input::placeholder { color: #94a3b8; font-weight: 500; }
+
+/* ---- Paste UI ---- */
+.paste-section {
+  background: rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg);
+  display: flex; flex-direction: column;
+  backdrop-filter: blur(8px);
+}
+
+.paste-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 18px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  cursor: pointer; font-weight: 700; font-size: 13.5px;
+  color: var(--brand-solid); user-select: none;
+  transition: all var(--ease);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.paste-section:has(.paste-body:not(.hidden)) .paste-header {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.paste-header:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+.chevron { font-size: 14px; transition: transform var(--ease); color: var(--text-muted); }
+.chevron.open { transform: rotate(180deg); }
+
+.paste-body {
+  padding: 0 16px 16px 16px;
+  background: var(--bg-card);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+  display: flex; flex-direction: column; gap: 8px;
+  animation: slideFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative; z-index: 1;
+}
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.paste-body textarea {
+  width: 100%; padding: 14px;
+  border: none; border-radius: var(--radius-md);
+  font-family: inherit; font-size: 13px; resize: vertical;
+  color: var(--text-main); background: #ffffff; font-weight: 500;
+  outline: none; transition: all var(--ease);
+  line-height: 1.5; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+.paste-body textarea:focus {
+  box-shadow: 0 0 0 2px var(--brand-solid) inset, 0 4px 12px var(--brand-glow);
+}
+.paste-actions { display: flex; gap: 8px; padding: 2px 4px; }
+
+/* ---- Language Selector ---- */
+.lang-selector {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 10px; margin-bottom: 2px;
+}
+.lang-selector span { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.lang-pills { 
+  display: flex; background: var(--bg-nested); padding: 3px; 
+  border-radius: 20px; border: 1px solid #e2e8f0;
+}
+.lang-pill {
+  padding: 4px 12px; font-size: 10px; font-weight: 800; border-radius: 15px; 
+  background: transparent; color: var(--text-muted); transition: all var(--ease);
+}
+.lang-pill.active { background: var(--brand-solid); color: white; box-shadow: 0 2px 6px var(--brand-glow); }
+.lang-pill:hover:not(.active) { color: var(--brand-solid); }
+
+/* ---- Buttons ---- */
+button {
+  border: none; border-radius: var(--radius-md);
+  font-family: inherit; font-weight: 700; cursor: pointer;
+  transition: all var(--ease);
+}
+button:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+/* In a dark recess, the primary button should pop brilliantly */
+.primary-btn {
+  width: 100%; padding: 16px;
+  background: var(--bg-card); color: var(--brand-solid); font-size: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+.primary-btn:hover:not(:disabled) { 
+  background: #f8fafc; transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3); color: var(--brand-hover);
+}
+
+.secondary-btn {
+  width: 100%; padding: 16px;
+  background: rgba(255,255,255,0.15); color: white; font-size: 14px;
+  backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+.secondary-btn:hover:not(:disabled) { 
+  background: rgba(255,255,255,0.25); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.small-btn { flex: 1; padding: 12px 8px; font-size: 12px; width: auto; border-radius: var(--radius-sm); }
+
+.accent2-btn { background: var(--accent-2); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.accent2-btn:hover:not(:disabled) { background: #312e81; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
+
+.accent3-btn { background: var(--accent-3); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.accent3-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+
+/* ---- Empty State (Floating in Recess) ---- */
+.empty-state {
+  text-align: center; padding: 30px 20px;
+  background: rgba(255,255,255,0.1); border-radius: var(--radius-lg);
+  backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2)); }
+.empty-state h4 { margin: 0 0 8px; font-size: 16px; color: white; font-weight: 800; }
+.empty-state p { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; margin: 0 0 20px; }
+.empty-state button { width: auto; padding: 12px 24px; border-radius: 24px; background: white; color: var(--brand-solid); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+
+/* ---- Modern Results Area ---- */
+.results {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg); padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.result-header { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; }
+.result-header h4 { margin: 0; font-size: 14px; font-weight: 800; color: var(--text-main); }
+
+.score-bar-wrap { margin: 4px 8px 8px; }
+.score-bar-bg { background: #e2e8f0; border-radius: var(--radius-xl); height: 8px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: var(--radius-xl); transition: width 1s cubic-bezier(0.25, 1, 0.5, 1); }
+
+.pill { font-size: 11.5px; padding: 6px 12px; border-radius: var(--radius-sm); font-weight: 700; }
+.pill.matched { background: #dcfce7; color: #166534; box-shadow: 0 2px 4px rgba(22,101,52,0.1); }
+.pill.missing  { background: #fee2e2; color: #991b1b; box-shadow: 0 2px 4px rgba(153,27,27,0.1); }
+.advice { font-size: 12.5px; margin: 0 8px; line-height: 1.5; color: var(--text-muted); font-weight: 500;}
+
+/* Feedback Boxes */
+.wildcard-box, .cv-box {
+  border-radius: var(--radius-md); padding: 16px; font-size: 12.5px; line-height: 1.5;
+  position: relative; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-weight: 500;
+}
+.wildcard-box { background: var(--bg-card); color: var(--text-main); border: 1px solid #e2e8f0; }
+.wildcard-box::after { content: "✨"; position: absolute; right: -5px; top: -5px; font-size: 60px; opacity: 0.05; }
+.wildcard-box strong { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--brand-solid); margin-bottom: 6px; font-weight: 800;}
+
+.cv-box { background: #f0fdf4; border: 1px solid #10b981; color: #065f46; }
+.cv-box strong { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #10b981; margin-bottom: 6px; font-weight: 800;}
+.cv-box ul { margin: 6px 0 0 18px; padding: 0; }
+.cv-box ul li { margin-bottom: 4px; }
+
+/* ---- Paywall ---- */
+.paywall-box {
+  text-align: center; border: 2px solid var(--orange); background: #fffbeb;
+  border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.paywall-box h4 { color: #b45309; margin: 0 0 8px; font-size: 17px; font-weight: 800; }
+.paywall-box p  { font-size: 13px; color: #92400e; margin: 0 0 20px; line-height: 1.5; font-weight: 500;}
+.paywall-box button { background: var(--orange); color: black; padding: 14px 24px; border-radius: var(--radius-xl); box-shadow: 0 6px 16px rgba(245,158,11,0.3); }
+
+/* ---- Footer (White Border) ---- */
+footer {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: var(--text-muted); font-weight: 700;
+  padding: 12px 20px 16px; background: var(--app-shell);
+}
+footer a { color: var(--text-main); text-decoration: none; padding: 8px 14px; border-radius: var(--radius-md); transition: all var(--ease); background: var(--bg-nested); }
+footer a:hover { background: #e2e8f0; color: var(--brand-solid); }
+
+.hidden { display: none !important; }
+
+/* ---- Modern Toasts ---- */
+#toast-container {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 10px; z-index: 9999;
+  width: 90%; pointer-events: none;
+}
+.toast {
+  background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+  color: #fff; padding: 14px 18px; border-radius: var(--radius-xl);
+  font-size: 13px; font-weight: 600; box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  display: flex; align-items: center; gap: 10px;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: auto;
+}
+.toast.success { border: 1px solid #10b981; }
+.toast.error { border: 1px solid #ef4444; }
+.toast.info { border: 1px solid #6366f1; }
+.toast.fade-out { animation: fadeOut 0.3s ease forwards; }
+
+@keyframes slideUp { from { transform: translateY(20px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-10px) scale(0.95); } }

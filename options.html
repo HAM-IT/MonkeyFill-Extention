@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MonkeyFill Profile Settings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --app-shell: #e4e4e9;
+      --bg-card: #ffffff;
+      --bg-nested: #f3f4f6;
+      --accent: #5C2D91;
+      --accent-hover: #4a2475;
+      --text: #0f172a;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+
+      --radius-xl: 32px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      
+      --ease: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --shadow-float: 0 10px 30px -10px rgba(0,0,0,0.1);
+      --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--app-shell);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+      margin: 0;
+    }
+    .container {
+      background: var(--bg-card);
+      padding: 40px;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-float);
+      width: 100%;
+      max-width: 650px;
+      position: relative;
+    }
+    h1 { margin-top: 0; color: var(--text); display: flex; align-items: center; gap: 14px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+    p { color: var(--text-secondary); line-height: 1.6; }
+    
+    .section {
+      margin-top: 32px; padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .section h2 { font-size: 18px; margin-top: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); }
+
+    /* Drag & Drop (Cutout) */
+    .drop-zone {
+      position: relative;
+      padding: 40px 20px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-nested);
+      box-shadow: var(--shadow-inner);
+      transition: all var(--ease);
+      margin-top: 20px;
+      border: 2px dashed #cbd5e1;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      background: #f5f3ff;
+      border-color: var(--accent);
+    }
+    .drop-zone .icon { font-size: 40px; margin-bottom: 12px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05)); }
+    .drop-zone input[type="file"] {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+    }
+    
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--ease);
+      margin-top: 16px;
+      box-shadow: 0 4px 14px rgba(92,45,145,0.15);
+    }
+    button:hover:not(:disabled) {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(92,45,145,0.25);
+    }
+    button:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* Success state */
+    .success-box {
+      display: none; margin-top: 20px; background: #f0fdf4; border: 1px solid #86efac; 
+      padding: 20px; border-radius: var(--radius-lg); text-align: center; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Theme Grid */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .theme-card {
+      border: 2px solid transparent;
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      cursor: pointer;
+      transition: all var(--ease);
+      background: var(--bg-nested);
+      box-shadow: var(--shadow-inner);
+    }
+    .theme-card:hover { border-color: #d8b4fe; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.05); background: #ffffff; }
+    .theme-card.active { border-color: var(--accent); background: #faf5ff; box-shadow: 0 4px 12px rgba(92,45,145,0.1); }
+    .theme-preview { height: 32px; border-radius: var(--radius-sm); margin-bottom: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .theme-name { font-weight: 700; font-size: 13.5px; color: var(--text); }
+    .theme-desc { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }
+
+    /* Premium */
+    .input-row { display: flex; gap: 12px; align-items: stretch; margin-top: 16px; }
+    input[type="text"] {
+      flex: 1; padding: 14px 18px; border: none; border-radius: var(--radius-md); background: var(--bg-nested);
+      font-size: 15px; font-family: inherit; transition: all var(--ease); box-shadow: var(--shadow-inner);
+      color: var(--text); font-weight: 500;
+    }
+    input[type="text"]:focus { outline: none; box-shadow: 0 0 0 2px var(--accent), 0 4px 12px rgba(92,45,145,0.15); background: var(--bg-card); }
+    .premium-btn { background: #eab308; color: #422006; margin-top: 0; box-shadow: 0 4px 14px rgba(234,179,8,0.2); }
+    .premium-btn:hover:not(:disabled) { background: #ca8a04; box-shadow: 0 6px 20px rgba(234,179,8,0.3); }
+
+    .loader { display: none; margin-top: 24px; color: var(--accent); font-weight: 600; text-align: center; }
+    .status-msg { margin-top: 12px; font-weight: 600; font-size: 14px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><img src="icons/icon48.png" alt="Logo" style="width: 36px; height: 36px;"> MonkeyFill Profile</h1>
+    <p>Upload your master CV here. MonkeyFill will securely extract your profile to your browser and use it to instantly tailor applications across the web.</p>
+    
+    <div>
+      <div class="drop-zone" id="drop-zone">
+        <div class="icon">📄</div>
+        <div id="file-name-display" style="font-weight: 500; font-size: 16px; color: var(--accent); margin-bottom: 6px;">Drag & Drop your PDF here</div>
+        <div style="font-size: 13px; color: var(--text-secondary);">or click to browse</div>
+        <input type="file" id="cv_upload" accept="application/pdf">
+      </div>
+      
+      <button id="process-btn" type="button" disabled style="width: 100%;">Analyze & Save Profile</button>
+      
+      <div id="loader" class="loader">
+        <span style="font-size: 20px; display: inline-block; animation: pulse 1s infinite alternate;">🤖</span> AI is analyzing your CV...
+      </div>
+    </div>
+
+    <div id="extracted-data" class="success-box">
+      <h3 style="margin-top: 0; color: #065f46; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <span style="font-size: 22px;">✅</span> Profile Extracted Securely
+      </h3>
+      <p style="margin-bottom: 12px; font-size: 14px; color: #047857;" id="summary-metrics">Your data is active and securely vaulted on your device.</p>
+    </div>
+
+    <!-- Phase 4: Layout UI -->
+    <div class="section">
+      <h2 style="color: var(--accent);">📐 CV Layout Template</h2>
+      <p>Select the structural design for your tailored CVs.</p>
+      
+      <div class="theme-grid" id="layout-container">
+        <div class="theme-card layout-card" data-layout="modern_sidebar">
+          <div class="theme-preview" style="background: #e2e8f0; display: flex; padding: 3px; gap: 3px;">
+             <div style="flex: 1; background: #cbd5e1; border-radius: 4px;"></div>
+             <div style="flex: 2.5; background: #f8fafc; border-radius: 4px;"></div>
+          </div>
+          <div class="theme-name">Modern Sidebar</div>
+          <div class="theme-desc">Left column for skills</div>
+        </div>
+        <div class="theme-card layout-card" data-layout="classic_executive">
+          <div class="theme-preview" style="background: #f8fafc; display: flex; flex-direction: column; gap: 3px; padding: 4px;">
+             <div style="height: 6px; background: #cbd5e1; border-radius: 2px; width: 60%; margin: 0 auto;"></div>
+             <div style="flex: 1; background: #e2e8f0; border-radius: 2px;"></div>
+             <div style="flex: 1; background: #e2e8f0; border-radius: 2px;"></div>
+          </div>
+          <div class="theme-name">Classic Executive</div>
+          <div class="theme-desc">Single column, centered</div>
+        </div>
+        <div class="theme-card layout-card" data-layout="bold_split">
+          <div class="theme-preview" style="background: #f8fafc; display: flex; padding: 3px; gap: 3px;">
+             <div style="flex: 2.5; background: #e2e8f0; border-radius: 4px;"></div>
+             <div style="flex: 1; background: #cbd5e1; border-radius: 4px;"></div>
+          </div>
+          <div class="theme-name">Bold Split</div>
+          <div class="theme-desc">Right column, left heavy</div>
+        </div>
+      </div>
+      <div id="layout-status" class="status-msg" style="color: #10b981;">Layout saved! ✅</div>
+    </div>
+
+    <!-- Phase 4: Theme UI -->
+    <div class="section">
+      <h2 style="color: var(--accent);">🎨 CV Rendering Theme</h2>
+      <p>Select the color palette for your generated Tailored CVs.</p>
+      
+      <div class="theme-grid" id="theme-container">
+        <div class="theme-card" data-theme="basic">
+          <div class="theme-preview" style="background: linear-gradient(90deg, #1c1c1e 50%, #fff 50%);"></div>
+          <div class="theme-name">Classic Authority</div>
+          <div class="theme-desc">Black & White</div>
+        </div>
+        <div class="theme-card" data-theme="modern_trust">
+          <div class="theme-preview" style="background: linear-gradient(90deg, #1A3263 50%, #F2EAE0 50%); border-color: #d1dee8;"></div>
+          <div class="theme-name">Modern Trust</div>
+          <div class="theme-desc">Deep Navy & Cream</div>
+        </div>
+        <div class="theme-card" data-theme="sustainable_growth">
+          <div class="theme-preview" style="background: linear-gradient(90deg, #285A48 50%, #B0E4CC 50%); border-color: #94d1b5;"></div>
+          <div class="theme-name">Sustainable</div>
+          <div class="theme-desc">Pine & Pale Mint</div>
+        </div>
+        <div class="theme-card" data-theme="sophisticated_creative">
+          <div class="theme-preview" style="background: linear-gradient(90deg, #575757 50%, #F3E4C9 50%); border-color: #e6d6b8;"></div>
+          <div class="theme-name">Sophisticated</div>
+          <div class="theme-desc">Charcoal & Sand</div>
+        </div>
+        <div class="theme-card" data-theme="energetic_startup">
+          <div class="theme-preview" style="background: linear-gradient(90deg, #AE2448 50%, #D5E7B5 50%); border-color: #c5dab1;"></div>
+          <div class="theme-name">Energetic</div>
+          <div class="theme-desc">Maroon & Matcha</div>
+        </div>
+      </div>
+      <div id="theme-status" class="status-msg" style="color: #10b981;">Theme saved! ✅</div>
+    </div>
+
+    <!-- Premium -->
+    <div class="section">
+      <h2 style="color: #ca8a04;">👑 MonkeyFill Premium</h2>
+      <p>Unlock unlimited AI Coaching and Tailored Pro mode.</p>
+      <div class="input-row">
+        <input type="text" id="license-key" placeholder="Enter License Key (e.g. HABOMIC_PRO_123)" autocomplete="off">
+        <button id="verify-btn" class="premium-btn">Verify Key</button>
+      </div>
+      <div id="premium-status" class="status-msg"></div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="section">
+      <h2 style="color: var(--accent);">💬 Send Feedback</h2>
+      <p>Found a bug? Have a suggestion? We'd genuinely love to hear from you — every message is read by the team.</p>
+      <a
+        id="feedback-btn"
+        href="mailto:omarabouelouafa303@outlook.com?subject=MonkeyFill%20Feedback&body=Hi%20MonkeyFill%20team%2C%0A%0A"
+        style="display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; background: var(--accent); color: white;
+               padding: 12px 22px; border-radius: 8px; font-size: 15px; font-weight: 600; text-decoration: none;
+               transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(92,45,145,0.2);"
+        onmouseover="this.style.background='var(--accent-hover)';this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 10px rgba(92,45,145,0.3)'"
+        onmouseout="this.style.background='var(--accent)';this.style.transform='translateY(0)';this.style.boxShadow='0 2px 5px rgba(92,45,145,0.2)'"
+      >
+        ✉️ Send us an Email
+      </a>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 12px; margin-bottom: 0;">
+        Opens your default mail client · <span style="font-family: monospace;">omarabouelouafa303@outlook.com</span>
+      </p>
+    </div>
+
+    <!-- Privacy Notice -->
+    <div class="section" style="border-top: 1px solid var(--border); padding-top: 20px;">
+      <p style="font-size: 11px; color: #94a3b8; line-height: 1.7; margin: 0;">
+        🔒 <strong style="color: #64748b;">Privacy Notice</strong> — Your CV data is processed locally in your browser. Anonymized profile metadata (name, contact, skills summary) may be stored securely to improve our services and deliver a better experience. We never sell your data. By using MonkeyFill, you agree to these terms.
+      </p>
+    </div>
+  </div>
+
+  <style>
+    @keyframes pulse { from { transform: scale(0.9); opacity: 0.8; } to { transform: scale(1.1); opacity: 1; } }
+  </style>
+
+  <script src="libs/pdf.min.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
