@@ -123,6 +123,8 @@ RULES:
 - For each experience: extract location, and tag the role's domain focus areas (e.g. "leadership", "electrical", "software", "operations", "sales").
 - Extract ALL experiences and ALL skills — omit nothing.
 - Dates: keep original format from CV.
+- CRITICAL: Order experiences array MOST RECENT FIRST (reverse chronological). The current/latest role MUST be index 0.
+- For end_date: use "Present" if the role is the candidate's current position. Never leave end_date empty for a current role — always write "Present".
 
 JSON Schema:
 {
@@ -202,7 +204,9 @@ JSON Schema:
         chrome.storage.sync.set({ userId });
       }
       const p = profile.personal || {};
-      const topExp = (profile.experience || [])[0] || {};
+      // Find current role: look for "Present"/"Current" end_date, fallback to first entry
+      const exps = profile.experience || [];
+      const currentExp = exps.find(e => /present|current|ongoing|now/i.test(e.end_date || "")) || exps[0] || {};
       await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-User-Id": userId },
@@ -214,8 +218,8 @@ JSON Schema:
           city: p.city || "",
           country: p.country || "",
           linkedin: p.linkedin_url || "",
-          current_position: topExp.job_title || "",
-          current_company: topExp.company_name || "",
+          current_position: currentExp.job_title || "",
+          current_company: currentExp.company_name || "",
           top_skills: (profile.skills || []).slice(0, 8),
           summary_keywords: p.summary_keywords || []
         })

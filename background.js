@@ -1,7 +1,6 @@
 // background.js
 // Service worker — handles first-install setup.
 
-console.log("MonkeyFill Background Service Worker initialized!");
 
 // When the extension is first installed, set up default data
 chrome.runtime.onInstalled.addListener(() => {
@@ -14,7 +13,6 @@ chrome.runtime.onInstalled.addListener(() => {
           isPremium: false,
         },
         () => {
-          console.log("MonkeyFill: Initialized default data in chrome.storage.sync");
         }
       );
     }

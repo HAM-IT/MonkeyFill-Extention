@@ -113,9 +113,19 @@ Calculate match_probability using this rubric (total 100):
 Sum A+B+C+D+E+F. Never fabricate. Compute internally, output only the integer.
 `;
 
+// Escape HTML entities to prevent XSS from AI-generated content
+function escapeHtml(str) {
+  if (!str) return "";
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function mdToHtml(text) {
   if (!text) return "";
-  return text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  // Escape first, then convert **bold** markdown to <strong>
+  const escaped = escapeHtml(text);
+  return escaped.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 }
 
 // ─── Version Gate ─────────────────────────────────────────────────────────────
@@ -294,10 +304,19 @@ async function openCVAsPDF(cv, jobSummary, userProfile) {
   // Experience — rendered in AI's relevance order from experience_merged
   const profileExpMap = {};
   (userProfile?.experience || []).forEach(e => {
-    profileExpMap[`${e.job_title}|${e.company_name}`] = e;
+    const k = `${e.job_title}|${e.company_name}`;
+    if (!profileExpMap[k]) profileExpMap[k] = e; // keep first occurrence only
   });
 
-  const expHtmlCombined = (cv.experience_merged || []).map(merged => {
+  // Deduplicate experience_merged by role_key (keep first occurrence)
+  const seenKeys = new Set();
+  const dedupedMerged = (cv.experience_merged || []).filter(m => {
+    if (seenKeys.has(m.role_key)) return false;
+    seenKeys.add(m.role_key);
+    return true;
+  });
+
+  const expHtmlCombined = dedupedMerged.map(merged => {
     const profile = profileExpMap[merged.role_key];
     const bullets = merged.bullets || (profile?.key_achievements) || [];
     if (profile) {
@@ -817,17 +836,17 @@ Read the job requirements. Identify the PRIMARY FOCUS the employer cares about m
 - Hybrid \u2192 blend proportionally
 
 STEP 2 \u2014 SMART EXPERIENCE REFRAMING:
-CRITICAL: You MUST include EVERY experience from the candidate's CV. Do NOT skip any role.
+CRITICAL RULES:
+- Include EVERY experience from the candidate's CV exactly ONCE. Do NOT skip any role. Do NOT repeat any role.
+- Each role_key ("Job Title|Company Name") MUST appear only once in the output array.
 - Highly relevant roles: 2-3 detailed bullets ANGLED toward the job's primary focus
-- Less relevant roles: 1-2 shorter bullets highlighting any transferable value (soft skills, general achievements, industry exposure)
-Example: "Led a team of 4 electrical engineers on power distribution redesign"
-- If job = leadership: "Led and mentored a cross-functional team of 4 engineers, coordinating deliverables across departments"
-- If job = electrical: "Designed and delivered power distribution system overhaul using [specific tools], achieving [metric]"
+- Less relevant roles: 1-2 shorter bullets highlighting any transferable value
 Use the candidate's REAL context_tags and achievements. Never fabricate, only reframe.
 GUIDED READING: Wrap the most job-relevant keywords in **double asterisks**.
 
 STEP 3 \u2014 EXPERIENCE ORDERING:
 Order ALL experiences by relevance to this job. Most relevant first. This is NOT necessarily chronological.
+Double-check: the output array length MUST equal the candidate's total number of roles.
 
 STEP 4 \u2014 SKILLS (8-10 max):
 Select only skills that match this job's domain. Hard skills first, skip generic soft skills.
@@ -912,13 +931,16 @@ Create 1-2 realistic freelance projects to fill those gaps:
 - Ensure every skill used also appears in skills_relevant
 
 STEP 4 - SMART EXPERIENCE REFRAMING:
-CRITICAL: Include EVERY experience from the candidate's CV. Do NOT skip any role.
+CRITICAL RULES:
+- Include EVERY experience from the candidate's CV exactly ONCE. Do NOT skip any role. Do NOT repeat any role.
+- Each role_key MUST appear only once in the output array.
 - Highly relevant roles: 2-3 detailed bullets ANGLED toward the job's primary focus
 - Less relevant roles: 1-2 shorter bullets highlighting transferable value
 Never fabricate, only reframe emphasis. Wrap key terms in **double asterisks**.
 
 STEP 5 - EXPERIENCE ORDERING:
 Freelance projects FIRST, then ALL remaining experiences ordered by relevance (not chronological).
+Double-check: no duplicate role_keys. Total real roles = candidate's count.
 
 STEP 6 - SKILLS (8-10 max): Hard skills matching job domain first.
 
@@ -986,13 +1008,13 @@ JSON output:
       .map(t => `
         <div style="background:${t.color};border:1px solid ${t.border};border-radius:7px;padding:8px 10px;">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${t.text};margin-bottom:5px;">${t.icon} ${t.label}</div>
-          ${t.items.map(i => `<div style="font-size:11.5px;color:${t.text};padding-left:10px;margin-bottom:3px;">▸ ${i}</div>`).join("")}
+          ${t.items.map(i => `<div style="font-size:11.5px;color:${t.text};padding-left:10px;margin-bottom:3px;">▸ ${escapeHtml(i)}</div>`).join("")}
         </div>`
       ).join("");
 
     const html = `
       <div class="result-header">
-        <h4>Analysis${jobSummary?.job_title ? ` · ${jobSummary.job_title}` : ""}</h4>
+        <h4>Analysis${jobSummary?.job_title ? ` · ${escapeHtml(jobSummary.job_title)}` : ""}</h4>
         <strong style="color:${barColor};font-size:15px;">${prob}%</strong>
       </div>
       <div class="score-bar-wrap">
@@ -1000,16 +1022,16 @@ JSON output:
           <div class="score-bar-fill" id="score-fill" style="width:0%;background:${barColor};"></div>
         </div>
       </div>
-      ${analysis.matched_skills ? `<div class="pill matched">✅ ${analysis.matched_skills}</div>` : ""}
-      ${analysis.missing_skills ? `<div class="pill missing">⚠️ Missing: ${analysis.missing_skills}</div>` : ""}
+      ${analysis.matched_skills ? `<div class="pill matched">✅ ${escapeHtml(analysis.matched_skills)}</div>` : ""}
+      ${analysis.missing_skills ? `<div class="pill missing">⚠️ Missing: ${escapeHtml(analysis.missing_skills)}</div>` : ""}
       ${roadmapHtml ? `
         <div style="display:flex;flex-direction:column;gap:6px;">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#6b7280;padding:4px 0 2px;">📍 Your Growth Roadmap</div>
           ${roadmapHtml}
         </div>` : ""}
-      <p class="advice"><strong>Coach:</strong> ${analysis.advice}</p>
-      ${toneNote ? `<p class="advice" style="margin-top:0;"><strong>Company Tone:</strong> ${toneNote}</p>` : ""}
-      ${analysis.wildcard ? `<div class="wildcard-box"><strong>🃏 Stand-Out Move</strong>${analysis.wildcard}</div>` : ""}
+      <p class="advice"><strong>Coach:</strong> ${escapeHtml(analysis.advice)}</p>
+      ${toneNote ? `<p class="advice" style="margin-top:0;"><strong>Company Tone:</strong> ${escapeHtml(toneNote)}</p>` : ""}
+      ${analysis.wildcard ? `<div class="wildcard-box"><strong>🃏 Stand-Out Move</strong>${escapeHtml(analysis.wildcard)}</div>` : ""}
     `;
     resultsBox.innerHTML = html;
     requestAnimationFrame(() => {
@@ -1027,16 +1049,25 @@ JSON output:
 
     // Skills — filtered and ordered by the AI for this specific job
     const skillsHtml = (cv.skills_relevant || [])
-      .map(s => `<div style="font-size:11px;color:#1c1c1e;padding:1px 0;">${s}</div>`)
+      .map(s => `<div style="font-size:11px;color:#1c1c1e;padding:1px 0;">${escapeHtml(s)}</div>`)
       .join("");
 
     // Experience — rendered in AI's relevance order from experience_merged
     const profileExpMap = {};
     (userProfile?.experience || []).forEach(e => {
-      profileExpMap[`${e.job_title}|${e.company_name}`] = e;
+      const k = `${e.job_title}|${e.company_name}`;
+      if (!profileExpMap[k]) profileExpMap[k] = e; // keep first occurrence only
     });
 
-    const expHtmlCombined = (cv.experience_merged || []).map(merged => {
+    // Deduplicate experience_merged by role_key (keep first occurrence)
+    const seenKeys = new Set();
+    const dedupedMerged = (cv.experience_merged || []).filter(m => {
+      if (seenKeys.has(m.role_key)) return false;
+      seenKeys.add(m.role_key);
+      return true;
+    });
+
+    const expHtmlCombined = dedupedMerged.map(merged => {
       const profile = profileExpMap[merged.role_key];
       const bullets = merged.bullets || (profile?.key_achievements) || [];
       if (profile) {
@@ -1076,7 +1107,7 @@ JSON output:
 
     const html = `
       <div class="result-header">
-        <h4>${cv.tagline || jobSummary?.job_title || "CV"}</h4>
+        <h4>${escapeHtml(cv.tagline || jobSummary?.job_title || "CV")}</h4>
         <button id="dl-pdf-btn" style="background:#5C2D91;color:white;border:none;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">⬇ PDF</button>
       </div>
 
@@ -1094,7 +1125,7 @@ JSON output:
         <div>
           ${cv.summary ? `<div style="margin-bottom:15px;">
             <div style="font-size:9px;font-weight:800;text-transform:uppercase;color:#5C2D91;margin-bottom:4px;">Profile</div>
-            <div style="font-size:11.5px;color:#333;line-height:1.5;">${cv.summary}</div>
+            <div style="font-size:11.5px;color:#333;line-height:1.5;">${escapeHtml(cv.summary)}</div>
           </div>` : ""}
           ${expHtmlCombined ? `<div>
             <div style="font-size:9px;font-weight:800;text-transform:uppercase;color:#5C2D91;margin-bottom:4px;">Experience</div>

@@ -1,13 +1,27 @@
-// cv_viewer.js — Renders the CV HTML with sanitization
+// cv_viewer.js — Renders the CV HTML with DOM-level sanitization
 
 function sanitizeHTML(html) {
-  // Strip <script> tags and their contents
-  html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  // Strip event handler attributes (onclick, onerror, onload, etc.)
-  html = html.replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
-  // Strip javascript: protocol in href/src attributes
-  html = html.replace(/(?:href|src)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, '');
-  return html;
+  // Parse into a real DOM tree — far safer than regex
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  // Remove all <script> elements
+  doc.querySelectorAll('script').forEach(el => el.remove());
+
+  // Remove all event handler attributes (on*)
+  doc.querySelectorAll('*').forEach(el => {
+    for (const attr of [...el.attributes]) {
+      if (attr.name.startsWith('on')) {
+        el.removeAttribute(attr.name);
+      }
+      // Strip javascript: protocol in href/src
+      if (['href', 'src'].includes(attr.name) && /^\s*javascript:/i.test(attr.value)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  return doc.documentElement.outerHTML;
 }
 
 chrome.storage.local.get(['cvHTML'], (result) => {
@@ -26,6 +40,6 @@ chrome.storage.local.get(['cvHTML'], (result) => {
       }
     }, 100);
   } else {
-    document.body.innerHTML = "<h1>Error: No CV data found.</h1><p>Please try generating your CV again.</p>";
+    document.body.textContent = "Error: No CV data found. Please try generating your CV again.";
   }
 });

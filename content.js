@@ -1,7 +1,6 @@
 // content.js
 // This script runs directly on the webpage (job boards)
 
-console.log("MonkeyFill Content Script Injected!");
 
 let userProfile = {};
 let learnedFields = {};
@@ -30,8 +29,7 @@ function setNativeValue(element, value) {
 }
 
 function runAutofill() {
-  console.log("MonkeyFill: Running Autofill Engine...");
-  
+
   const inputs = document.querySelectorAll('input:not([type="hidden"]), textarea, select');
   
   inputs.forEach(input => {
@@ -92,7 +90,7 @@ function setupMonkeyLearn(input) {
         // Save it to learned fields forever
         learnedFields[key] = val;
         chrome.storage.local.set({ learnedFields: learnedFields }, () => {
-          console.log(`Monkey-Learn: Saved unknown field mapped to key [${key}]`);
+
           e.target.style.border = "2px solid #10b981"; // Success Green
         });
       }
